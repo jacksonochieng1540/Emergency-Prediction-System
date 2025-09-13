@@ -1,0 +1,96 @@
+{% extends 'prediction/base.html' %}
+{% load static %}
+
+{% block title %}Home - Emergency Prediction System{% endblock %}
+
+{% block content %}
+<div class="row align-items-center min-vh-70">
+    <div class="col-lg-6">
+        <h1 class="display-4 fw-bold text-primary mb-4">Predict Emergencies Before They Happen</h1>
+        <p class="lead mb-4">
+            Our advanced machine learning system analyzes environmental data to predict potential emergencies 
+            like fires, accidents, medical incidents, and natural disasters.
+        </p>
+        <div class="d-grid gap-2 d-md-flex">
+            <a href="{% url 'predict_page' %}" class="btn btn-primary btn-lg px-4 me-md-2">
+                <i class="fas fa-bolt me-2"></i>Make a Prediction
+            </a>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-primary btn-lg px-4">
+                <i class="fas fa-chart-line me-2"></i>View Dashboard
+            </a>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <img src="{% static 'prediction/images/emergency-prediction.svg' %}" alt="Emergency Prediction" class="img-fluid">
+    </div>
+</div>
+
+<div class="row mt-5 pt-5">
+    <div class="col-12 text-center mb-5">
+        <h2 class="fw-bold">How It Works</h2>
+        <p class="lead">Our system uses multiple data points to predict emergencies</p>
+    </div>
+    
+    <div class="col-md-3 text-center mb-4">
+        <div class="feature-icon bg-primary bg-gradient rounded-circle p-3 mb-3 mx-auto">
+            <i class="fas fa-temperature-high fa-2x text-white"></i>
+        </div>
+        <h5>Temperature</h5>
+        <p>High temperatures increase fire risk</p>
+    </div>
+    
+    <div class="col-md-3 text-center mb-4">
+        <div class="feature-icon bg-success bg-gradient rounded-circle p-3 mb-3 mx-auto">
+            <i class="fas fa-wind fa-2x text-white"></i>
+        </div>
+        <h5>Wind Speed</h5>
+        <p>Strong winds can spread fires rapidly</p>
+    </div>
+    
+    <div class="col-md-3 text-center mb-4">
+        <div class="feature-icon bg-info bg-gradient rounded-circle p-3 mb-3 mx-auto">
+            <i class="fas fa-tachometer-alt fa-2x text-white"></i>
+        </div>
+        <h5>Air Quality</h5>
+        <p>Poor air quality indicates potential hazards</p>
+    </div>
+    
+    <div class="col-md-3 text-center mb-4">
+        <div class="feature-icon bg-warning bg-gradient rounded-circle p-3 mb-3 mx-auto">
+            <i class="fas fa-users fa-2x text-white"></i>
+        </div>
+        <h5>Population Density</h5>
+        <p>Dense areas have higher accident risks</p>
+    </div>
+</div>
+
+<div class="row mt-5 pt-5 bg-light rounded-3 p-4">
+    <div class="col-12 text-center mb-4">
+        <h2 class="fw-bold">Emergency Types We Predict</h2>
+    </div>
+    
+    <div class="col-md-3 text-center mb-4">
+        <img src="{% static 'prediction/images/fire-icon.png' %}" alt="Fire" height="80" class="mb-3">
+        <h5>Fires</h5>
+        <p>Predict fire outbreaks based on environmental conditions</p>
+    </div>
+    
+    <div class="col-md-3 text-center mb-4">
+        <img src="{% static 'prediction/images/accident-icon.png' %}" alt="Accident" height="80" class="mb-3">
+        <h5>Accidents</h5>
+        <p>Identify high-risk areas for accidents</p>
+    </div>
+    
+    <div class="col-md-3 text-center mb-4">
+        <img src="{% static 'prediction/images/medical-icon.png' %}" alt="Medical" height="80" class="mb-3">
+        <h5>Medical Emergencies</h5>
+        <p>Predict medical emergency probabilities</p>
+    </div>
+    
+    <div class="col-md-3 text-center mb-4">
+        <img src="{% static 'prediction/images/natural-disaster-icon.png' %}" alt="Natural Disaster" height="80" class="mb-3">
+        <h5>Natural Disasters</h5>
+        <p>Early warning for natural disasters</p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,518 @@
+{% extends 'prediction/base.html' %}
+{% load static %}
+
+{% block title %}Prediction Results - Emergency Prediction System{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Results page specific styles */
+    .result-card {
+        border-left: 5px solid;
+        transition: transform 0.2s;
+    }
+    
+    .result-card:hover {
+        transform: translateY(-3px);
+    }
+    
+    .severity-none {
+        border-left-color: #28a745;
+    }
+    
+    .severity-low {
+        border-left-color: #ffc107;
+    }
+    
+    .severity-medium {
+        border-left-color: #fd7e14;
+    }
+    
+    .severity-high {
+        border-left-color: #dc3545;
+    }
+    
+    .severity-critical {
+        border-left-color: #6f42c1;
+    }
+    
+    .probability-meter {
+        height: 25px;
+        background-color: #e9ecef;
+        border-radius: 0.25rem;
+        margin-bottom: 10px;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .probability-fill {
+        height: 100%;
+        border-radius: 0.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding-right: 10px;
+        font-weight: bold;
+        color: white;
+        transition: width 1s ease-in-out;
+    }
+    
+    .recommendation-card {
+        background-color: #f8f9fa;
+        border-left: 4px solid #007bff;
+    }
+    
+    .emergency-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .confidence-badge {
+        font-size: 1.1rem;
+        padding: 0.5rem 1rem;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+    
+    .impact-factor {
+        text-align: center;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        background-color: #f8f9fa;
+        transition: transform 0.2s;
+    }
+    
+    .impact-factor:hover {
+        transform: translateY(-5px);
+        background-color: #e9ecef;
+    }
+    
+    .factor-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #007bff;
+    }
+    
+    .factor-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    .risk-indicator {
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+    }
+    
+    .risk-low { background-color: #28a745; }
+    .risk-medium { background-color: #ffc107; }
+    .risk-high { background-color: #fd7e14; }
+    .risk-very-high { background-color: #dc3545; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'index' %}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'predict_page' %}">Predict</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Results</li>
+            </ol>
+        </nav>
+        
+        <h1 class="fw-bold text-primary">Prediction Results</h1>
+        <p class="lead">Analysis of environmental data for emergency prediction</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Main Result Card -->
+    <div class="col-lg-8 mb-4">
+        <div class="card shadow result-card severity-{{ prediction.severity }}">
+            <div class="card-header bg-white">
+                <h3 class="card-title mb-0">
+                    <i class="fas {{ prediction.icon }} me-2 text-{{ prediction.color }}"></i>
+                    Prediction Analysis
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-4 text-center">
+                        <div class="emergency-icon text-{{ prediction.color }}">
+                            <i class="fas {{ prediction.icon }}"></i>
+                        </div>
+                        <h2 class="text-capitalize">{{ prediction.emergency_type }}</h2>
+                        <span class="badge confidence-badge bg-{{ prediction.color }}">
+                            {{ prediction.confidence }}% Confidence
+                        </span>
+                    </div>
+                    
+                    <div class="col-md-8">
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    <strong>Severity Level:</strong>
+                                    <span class="badge bg-{{ prediction.color }} text-capitalize float-end">
+                                        {{ prediction.severity }}
+                                    </span>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <strong>Prediction Time:</strong>
+                                    <span class="float-end">{{ prediction.timestamp }}</span>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <strong>Location:</strong>
+                                    <span class="float-end">
+                                        {% if prediction.location %}
+                                            {{ prediction.location }}
+                                        {% else %}
+                                            Not specified
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    <strong>Risk Assessment:</strong>
+                                    <span class="float-end">
+                                        <span class="risk-indicator risk-{{ prediction.risk_level }}"></span>
+                                        {{ prediction.risk_level|title }} Risk
+                                    </span>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <strong>Response Time:</strong>
+                                    <span class="float-end">{{ prediction.response_time }}</span>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <strong>Model Version:</strong>
+                                    <span class="float-end">v2.1.4</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <!-- Probability Distribution -->
+                <h5 class="mb-3">Probability Distribution</h5>
+                <div class="row">
+                    {% for emergency, probability in prediction.probabilities.items %}
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-capitalize">
+                                {% if emergency == 'none' %}
+                                    No Emergency
+                                {% else %}
+                                    {{ emergency|replace:"_, " }}
+                                {% endif %}
+                            </span>
+                            <span>{{ probability }}%</span>
+                        </div>
+                        <div class="probability-meter">
+                            <div class="probability-fill" 
+                                 style="width: {{ probability }}%; background-color: {{ emergency|get_emergency_color }};">
+                                {% if probability > 10 %}{{ probability }}%{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Impact Factors -->
+        <div class="card shadow mt-4">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-line me-2 text-primary"></i>
+                    Key Impact Factors
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for factor in impact_factors %}
+                    <div class="col-md-4 mb-3">
+                        <div class="impact-factor">
+                            <div class="factor-value">{{ factor.value }}</div>
+                            <div class="factor-label">{{ factor.label }}</div>
+                            <div class="factor-impact mt-2">
+                                <small class="text-{{ factor.impact_color }}">
+                                    <i class="fas fa-arrow-{{ factor.impact_direction }} me-1"></i>
+                                    {{ factor.impact_level }} impact
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recommendations and Actions -->
+    <div class="col-lg-4">
+        <!-- Recommendations Card -->
+        <div class="card shadow mb-4">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-lightbulb me-2 text-warning"></i>
+                    Recommended Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="recommendation-card p-3 mb-3">
+                    <h6>Immediate Actions</h6>
+                    <ul class="mb-0 ps-3">
+                        {% for action in prediction.immediate_actions %}
+                        <li>{{ action }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                
+                <div class="recommendation-card p-3 mb-3">
+                    <h6>Preventive Measures</h6>
+                    <ul class="mb-0 ps-3">
+                        {% for measure in prediction.preventive_measures %}
+                        <li>{{ measure }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                
+                <div class="recommendation-card p-3">
+                    <h6>Monitoring Suggestions</h6>
+                    <ul class="mb-0 ps-3">
+                        {% for suggestion in prediction.monitoring_suggestions %}
+                        <li>{{ suggestion }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Emergency Contacts -->
+        <div class="card shadow mb-4">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-phone-alt me-2 text-danger"></i>
+                    Emergency Contacts
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-phone text-danger me-2"></i>
+                            Emergency Services
+                        </div>
+                        <strong>911</strong>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-fire-extinguisher text-warning me-2"></i>
+                            Fire Department
+                        </div>
+                        <strong>{% if prediction.emergency_type == 'fire' %}911 (Priority){% else %}911{% endif %}</strong>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-ambulance text-primary me-2"></i>
+                            Medical Emergency
+                        </div>
+                        <strong>{% if prediction.emergency_type == 'medical' %}911 (Priority){% else %}911{% endif %}</strong>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-building text-info me-2"></i>
+                            Local Authorities
+                        </div>
+                        <strong>311</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Next Steps -->
+        <div class="card shadow">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-forward me-2 text-success"></i>
+                    Next Steps
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'predict_page' %}" class="btn btn-primary">
+                        <i class="fas fa-redo me-2"></i>Make Another Prediction
+                    </a>
+                    <a href="{% url 'dashboard' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-chart-line me-2"></i>View Dashboard
+                    </a>
+                    <button class="btn btn-outline-secondary" onclick="window.print()">
+                        <i class="fas fa-print me-2"></i>Print Report
+                    </button>
+                    <button class="btn btn-outline-info" id="shareReport">
+                        <i class="fas fa-share-alt me-2"></i>Share Results
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Analysis Section -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-microscope me-2 text-info"></i>
+                    Detailed Analysis
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Environmental Factors</h6>
+                        <canvas id="environmentalChart" height="250"></canvas>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Risk Comparison</h6>
+                        <canvas id="riskComparisonChart" height="250"></canvas>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <h6 class="mt-3">Prediction Explanation</h6>
+                <p class="text-muted">
+                    This prediction is based on analysis of multiple environmental factors using our machine learning model. 
+                    The system evaluated {{ prediction.factors_analyzed }} different parameters to determine the likelihood of 
+                    various emergency scenarios. The confidence level indicates how certain the model is about this prediction 
+                    based on historical data patterns.
+                </p>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Note:</strong> This is a predictive analysis and should be used as guidance rather than absolute certainty. 
+                    Always follow official emergency protocols and consult with professionals when making safety decisions.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Feedback Section -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-comment-dots me-2 text-primary"></i>
+                    Provide Feedback
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    Help us improve our prediction system by providing feedback on this prediction's accuracy.
+                </p>
+                
+                <form id="feedbackForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="prediction_id" value="{{ prediction.id }}">
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Was this prediction accurate?</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="accuracy" id="accurateYes" value="yes">
+                            <label class="form-check-label" for="accurateYes">Yes, it was accurate</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="accuracy" id="accurateNo" value="no">
+                            <label class="form-check-label" for="accurateNo">No, it was inaccurate</label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="actualEmergency" class="form-label">What actually happened? (Optional)</label>
+                        <select class="form-select" id="actualEmergency" name="actual_emergency">
+                            <option value="">Select actual emergency type</option>
+                            <option value="none">No emergency occurred</option>
+                            <option value="fire">Fire</option>
+                            <option value="accident">Accident</option>
+                            <option value="medical">Medical emergency</option>
+                            <option value="natural_disaster">Natural disaster</option>
+                            <option value="other">Other type of emergency</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="comments" class="form-label">Additional comments (Optional)</label>
+                        <textarea class="form-control" id="comments" name="comments" rows="3" placeholder="Share any additional feedback about this prediction"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Submit Feedback</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize charts
+        initCharts();
+        
+        // Handle feedback form submission
+        const feedbackForm = document.getElementById('feedbackForm');
+        if (feedbackForm) {
+            feedbackForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(feedbackForm);
+                const submitButton = feedbackForm.querySelector('button[type="submit"]');
+                const originalText = submitButton.innerHTML;
+                
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
+                submitButton.disabled = true;
+                
+                try {
+                    const response = await fetch('/api/feedback/', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(Object.fromEntries(formData))
+                    });
+                    
+                    if (response.ok) {
+                        showNotification('Thank you for your feedback! It helps us improve our system.', 'success');
+                        feedbackForm.reset();
+                    } else {
+                        throw new Error('Failed to submit feedback');
+                    }
+                } catch (error) {
+                    console.error('Feedback submission error:', error);
+                    showNotification('Error submitting feedback. Please try again.', 'danger');
+                } finally {
+                    submitButton.innerHTML = originalText;
+                    submitButton.disabled = false;
+                }
+            });
+        }
