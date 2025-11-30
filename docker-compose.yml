@@ -55,7 +55,7 @@ services:
     environment:
       - DEBUG=0
       - DB_NAME=emergency_db
-      - DB_USER=postgres
+      - DB_USER=postgress
       - DB_PASSWORD=password
       - DB_HOST=db
       - DB_PORT=5432
