@@ -9,4 +9,4 @@ class PredictionSerializer(serializers.ModelSerializer):
 class PredictionFeedbackSerializer(serializers.ModelSerializer):
     class Meta:
         model = PredictionFeedback
-        fields = '__all__'
+        fields = '__all__'     
